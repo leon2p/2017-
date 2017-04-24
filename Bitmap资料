@@ -244,3 +244,4 @@ while(temp_height < height) {
             img_565[i].ldata=0x00;
         }
     }
+
