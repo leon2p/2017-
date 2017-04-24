@@ -1,0 +1,246 @@
+1.rgb 与 bitmap数据结构（抽象能力）
+#ifndef _BMP_CONVERT_H_
+#define _BMP_CONVERT_H_
+//此文件主要定义以下内容：
+//1.各种位数的RGB数据的定义
+//2.BMP文件头信息结构体的定义
+//3.主要宏的定义
+
+//typedef unsigned long       DWORD;
+//typedef int                 BOOL;
+//typedef unsigned char       BYTE;
+//typedef unsigned short      WORD;
+//typedef short                SHORT;
+//typedef long                LONG;
+
+//图像转换格式大小定义，目前定义所支持的BMP图像最大为：1920*1080
+#define MAX_HEIGHT 1080
+#define MAX_WIDTH  1920
+//BMP头信息大小定义，其中，如果为8位BMP，则存在256个色表
+//共占用空间256*4字节，54为文件头信息大小
+#define MAX_HEADER 1024+54
+//
+#define BMP_BFTYPE_0            0x01
+#define BMP_BFTYPE_1            0x02
+#define BMP_FILE_SIZE            0x03
+#define BMP_OFFSET                0x04
+#define BMP_WIDTH                0x05
+#define BMP_HEIGHT                0x06
+#define BMP_BITCOUNT            0x07
+#define BMP_COMPRESSION            0x08
+#define BMP_IMAGE_SIZE            0x09
+#define BMP_X_PELSPERMETER        0x0A
+#define BMP_Y_PELSPERMETER        0x0B
+#define BMP_CLRUSED                0x0C
+#define BMP_CLRIMPORTANT        0x0D
+#define BMP_1BIT                0x01
+#define BMP_4BIT                0x04
+#define BMP_8BIT                0x08
+#define BMP_16BIT                0x10
+#define BMP_24BIT                0x18
+#define BMP_32BIT                0x20
+
+typedef struct
+{
+    unsigned char bit0:1;
+    unsigned char bit1:1;
+    unsigned char bit2:1;
+    unsigned char bit3:1;
+    unsigned char bit4:1;
+    unsigned char bit5:1;
+    unsigned char bit6:1;
+    unsigned char bit7:1;
+}udata_1;
+typedef union
+{
+    udata_1 udata;
+    unsigned char ldata;
+}RGB_1;
+
+typedef struct
+{
+    unsigned char index1:4;
+    unsigned char index2:4;
+}udata_4;
+typedef union
+{
+    udata_4 udata;
+    unsigned char ldata;
+}RGB_4;
+
+typedef struct
+{
+    unsigned char nouse:2;
+    unsigned char r:2;
+    unsigned char g:2;
+    unsigned char b:2;
+}udata_8;
+typedef union
+{
+    udata_8 udata;
+    unsigned char ldata;
+}RGB_8;
+
+typedef struct
+{
+    short int r:5;
+    short int g:6;
+    short int b:5;
+}udata_565;
+
+typedef union
+{
+    udata_565 udata;
+    short int ldata;
+}RGB_565;
+
+typedef struct
+{
+    short int r:5;
+    short int g:5;
+    short int b:5;
+    short int nouse:1;
+}udata_555;
+
+typedef union
+{
+    udata_555 udata;
+    short int ldata;
+}RGB_555;
+
+typedef struct
+{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+}RGB_24;
+
+typedef struct
+{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char nouse;
+}RGB_32;
+typedef struct
+{
+    unsigned short int bfType;
+    unsigned long  int bfSize;
+    unsigned short int bfReserved1;
+    unsigned short int bfReserved2;
+    unsigned long  int bfOffBits;
+}BITMAPFILEHEADER;
+typedef struct
+{
+    unsigned long int biSize;                //本结构所占用字节数（15-18字节）
+    long int biWidth;                        //位图的宽度，以像素为单位（19-22字节）
+    long int biHeight;                        //位图的高度，以像素为单位（23-26字节）
+    unsigned short biPlanes;                //目标设备的级别，必须为1(27-28字节）
+    unsigned short biBitCount;                //每个像素所需的位数，必须是1（双色），（29-30字节）
+                                            //4(16色），8(256色）16(高彩色)或24（真彩色）之一
+    unsigned long int biCompression;        //位图压缩类型，必须是0（不压缩），（31-34字节）
+                                            //1(BI_RLE8压缩类型）或2(BI_RLE4压缩类型）之一
+    unsigned long int biSizeImage;            //位图的大小(其中包含了为了补齐行数是4的倍数而添加的空字节)，以字节为单位（35-38字节）
+    long int biXPelsPerMeter;                //位图水平分辨率，每米像素数（39-42字节）
+    long int biYPelsPerMeter;                //位图垂直分辨率，每米像素数（43-46字节)
+    unsigned long int biClrUsed;            //位图实际使用的颜色表中的颜色数（47-50字节）
+    unsigned long int biClrImportant;        //位图显示过程中重要的颜色数（51-54字节）
+}BITMAPINFOHEADER;
+//占40个字节
+
+typedef struct
+{
+    unsigned char rgbRed;        //红色的亮度（值范围为0-255)
+    unsigned char rgbGreen;        //绿色的亮度（值范围为0-255)
+    unsigned char rgbBlue;        //蓝色的亮度（值范围为0-255)
+    unsigned char rgbReserved;    //保留，必须为0
+}RGBQUAD;
+
+typedef struct
+{
+    BITMAPINFOHEADER bmiHeader;    //位图信息头
+    RGBQUAD bmiColors[1];        //颜色表 ：此数组大小依据BMP位数决定
+}BITMAPINFO;
+
+#endif
+扫盲：位结构
+这是位结构，关于位结构中卫域的相关说明：
+
+C99规定int、unsigned int和bool可以作为位域类型，但编译器几乎都对此作了扩展，
+允许其它类型类型的存在。
+使用位域的主要目的是压缩存储，其大致规则为：
+1) 如果相邻位域字段的类型相同，且其位宽之和小于类型的sizeof大小，则后面的字
+段将紧邻前一个字段存储，直到不能容纳为止；
+2) 如果相邻位域字段的类型相同，但其位宽之和大于类型的sizeof大小，则后面的字
+段将从新的存储单元开始，其偏移量为其类型大小的整数倍；(经测试此条好像仅限于char型，整型可以跨域存储)
+3) 如果相邻的位域字段的类型不同，则各编译器的具体实现有差异，VC6采取不压缩方式，Dev-C++采取压缩方式；
+4) 如果位域字段之间穿插着非位域字段，则不进行压缩；
+5) 整个结构体的总大小为最宽基本类型成员大小的整数倍。
+
+1字节对齐
+
+struct tagAAA
+
+{
+
+   unsigned char ucId:1;         占1位
+
+   unsigned char ucPara0:2;   占2位，跟前一个共用1个字节，2+1<8位
+
+   unsigned char ucState:6;    占6位，前面只剩5位，所以占用新的1字节
+
+   unsigned char ucTail:4;       同理，加上前面超过8位，所以占用1个字节
+
+   unsigned char ucAvail;        没有位标注，单独占用一个字节
+
+   unsigned char ucTail2:4;－－－－跟后面的不同类型，单独占用1个字节
+
+   unsigned long ulData;－－－－占用4个字节
+
+}AAA_S;
+
+结果为(ucId+ucPara0)1+(ucState)1+(ucTail)1+(ucAvail)1+(ucTail2)1+(ulData)4=9
+
+2.rgb565 -- bmp
+以行的行数填充
+while(temp_height < height) {
+        temp_height++;
+        img_565 = (RGB_565*)&rgbBuffer[read_count];
+        img_24 = (RGB_24*)&bmpBuffer[write_count];
+        read_count += width * 2;
+        for(i = 0; i < width; i++) {
+            //568 --> 888
+            img_24[i].r = img_565[i].udata.r >> 11;
+            img_24[i].g = img_565[i].udata.g >> 5;
+            img_24[i].b =  img_565[i].udata.b;
+
+            img_24[i].r <<= 3;
+            img_24[i].g <<= 2;
+            img_24[i].b <<= 3;
+         }
+         write_count += width * 3;
+    }
+
+3.bitmap -- 565
+ 
+    height_temp=0;
+    while(height_temp<height)
+    {
+        height_temp++;
+        img_24=((RGB_24 *)&bmpaddr[read_count]);
+        img_565=((RGB_565 *)&desbuffer[write_count]);
+        read_count+=width*3;
+        for(i=0;i<width;i++)
+        {
+            img_565[i].udata.r=(short int)(img_24[i].r>>3);
+            img_565[i].udata.g=(short int)(img_24[i].g>>2);
+            img_565[i].udata.b=(short int)(img_24[i].b>>3);
+        }
+        if(count_24<4)read_count+=count_24;
+        write_count+=width*2;
+        if(count_16<4)
+        {
+            write_count+=count_16;
+            img_565[i].ldata=0x00;
+        }
+    }
