@@ -1,1 +1,32 @@
+1.打开文件系统接口
+（1）#include <stdio.h> 
+FILE *fopen(const char *restrict filename, const char *restrict mode); 
+mode: 
+r or rb
+w or wb
+r+ or rb+
+w+ or wb+
+a+ or ab+
+b代表读写二进制
+例子：
+ if ((fp = fopen(file, "r")) == NULL)
+        return;
 
+（2）open系统接口
+#include <sys/stat.h> 
+#include <fcntl.h> 
+int open(const char *path, int oflag, ... ); 
+
+（3）O_RDONLY ：只读
+O_WRONLY：只写
+O_RDWR： 可读可写
+O_APPEND: 追加
+O_CREATE: 指定文件不存在时，则创建
+O_EXCL: If O_CREAT and O_EXCL are set, open() shall fail if the file exists. 
+O_NONBLOCK:如果打开文件设置了O_RDONLY 或者 O_WRONLY（非阻塞IO）
+When attempting to read a file (other than a pipe or FIFO) that supports non-blocking reads and has no data currently available
+If O_NONBLOCK is set, read() shall return -1 and set errno to [EAGAIN]. 
+If O_NONBLOCK is clear, read() shall block the calling thread until some data becomes available. 
+The use of the O_NONBLOCK flag has no effect if there is some data available. 
+
+（4）
